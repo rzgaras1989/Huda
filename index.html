@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>سیستەمی د. هدی ٢٠٢٦</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a237e">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        @font-face { font-family: 'Speda'; src: local('Speda Bold'), sans-serif; }
+        :root { 
+            --main: #1a237e; 
+            --main-light: #3949ab;
+            --bg: #f4f6f9; 
+            --q1: #e63946; 
+            --q2: #457b9d; 
+            --q3: #8338ec; 
+            --q4: #2a9d8f; 
+        }
+        
+        * { 
+            font-family: 'Speda', Tahoma, sans-serif !important; 
+            font-weight: bold !important; 
+            box-sizing: border-box; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        
+        body { 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 10px; 
+            color: #1a237e; 
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            width: 100%;
+            max-width: 600px; 
+            margin: auto; 
+        }
+        
+        header h2 { 
+            color: var(--main); 
+            text-align: center; 
+            border-bottom: 3px solid var(--main); 
+            padding-bottom: 10px; 
+            margin-bottom: 20px; 
+            font-size: 22px; 
+        }
+        
+        .input-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+            margin-bottom: 15px; 
+            align-items: center; 
+        }
+        
+        #name { 
+            flex: 1 1 180px; 
+            padding: 12px 10px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            transition: border 0.3s;
+        }
+        #name:focus, #phone:focus { border-color: var(--main); outline: none; }
+        
+        #phone { 
+            flex: 1 1 105px; 
+            padding: 12px 5px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 12px; 
+            text-align: center; 
+            color: #800000; 
+            font-size: 14px; 
+        }
+        
+        .age-box { 
+            width: 55px; 
+            height: 45px; 
+            overflow-y: scroll; 
+            background: #e8eaf6; 
+            border: 2px solid var(--main); 
+            border-radius: 12px; 
+            scroll-snap-type: y mandatory; 
+            scrollbar-width: none; 
+        }
+        .age-box::-webkit-scrollbar { display: none; }
+        .age-num { 
+            height: 45px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 18px; 
+            color: var(--main); 
+            scroll-snap-align: start; 
+        }
+
+        .treatment-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); 
+            gap: 10px; 
+            margin-bottom: 15px;
+        }
+        
+        .treat-item { 
+            background: #ffffff; 
+            color: #495057; 
+            border: 1.5px solid #ced4da; 
+            padding: 12px 2px; 
+            border-radius: 12px; 
+            text-align: center; 
+            font-size: 13px; 
+            cursor: pointer; 
+            position: relative; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .treat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: #adb5bd;
+        }
+        
+        .treat-item.active { 
+            background: linear-gradient(135deg, var(--main) 0%, var(--main-light) 100%); 
+            color: white; 
+            border-color: transparent; 
+            box-shadow: 0 6px 15px rgba(26, 35, 126, 0.35);
+            transform: scale(1.05);
+            z-index: 2;
+        }
+        
+        .treat-item.has-data::after { 
+            content: '●'; 
+            position: absolute; 
+            top: 2px; 
+            right: 6px; 
+            color: #00e676; 
+            font-size: 14px; 
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.3));
+        }
+
+        .teeth-container { 
+            display: none; 
+            margin-top: 15px; 
+            padding: 15px 5px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 15px; 
+            background: #fafafa; 
+            overflow-x: auto; 
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+        }
+        
+        .tooth-layout { display: flex; flex-direction: column; align-items: center; direction: ltr; margin: 5px 0; width: 100%; }
+        .tooth-row { display: flex; align-items: center; justify-content: center; gap: 1px; width: 100%; }
+        .quadrant { display: flex; gap: 1px; }
+        
+        /* قەبارەی خانەکان کرا بە 19px */
+        .tooth { 
+            width: 18px; 
+            height: 29px; 
+            font-size: 10px; 
+            background: white; 
+            border: 1.5px solid #bbb; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            flex-shrink: 1; 
+            transition: all 0.2s;
+        }
+        .tooth:hover { transform: scale(1.1); z-index: 5; }
+        .q1 .tooth { border-color: var(--q1); color: var(--q1); }
+        .q2 .tooth { border-color: var(--q2); color: var(--q2); }
+        .q3 .tooth { border-color: var(--q3); color: var(--q3); }
+        .q4 .tooth { border-color: var(--q4); color: var(--q4); }
+        .tooth.selected { background: #333 !important; color: white !important; border-color: #333 !important; transform: scale(1.05); }
+
+        .btn { 
+            width: 100%; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            color: white; 
+            margin-top: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .save-btn { background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%); }
+        .report-btn { background: linear-gradient(135deg, var(--main) 0%, #3f51b5 100%); }
+
+        .res-card { background: #fff; border: 2px solid #e0e0e0; padding: 15px; border-radius: 15px; margin-top: 15px; color: #000; box-shadow: 0 4px 8px rgba(0,0,0,0.04); transition: transform 0.2s; }
+        .res-card:hover { transform: translateY(-2px); border-color: #cfd8dc; }
+        .res-header { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 8px; font-size: 16px; font-weight: bold; }
+        .res-sub { display: flex; flex-wrap: wrap; gap: 5px; justify-content: space-between; font-size: 13px; color: #444; background: #f8f9fa; padding: 8px; border-radius: 10px; margin: 10px 0; border: 1px solid #eee; }
+        
+        .work-box { margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; text-align: center; }
+        .work-title { display: inline-block; background: var(--main); color: white; padding: 5px 15px; border-radius: 20px; margin-bottom: 12px; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 71, 161, 0.95); backdrop-filter: blur(5px); z-index: 9999; padding: 20px; overflow-y: auto; color: white; }
+        .modal-content { max-width: 600px; margin: auto; background: transparent; }
+        .icon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-top: 25px; }
+        .icon-card { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 20px 10px; border-radius: 15px; text-align: center; cursor: pointer; transition: all 0.3s; font-size: 15px; }
+        .icon-card:hover { background: rgba(255,255,255,0.25); transform: translateY(-3px); }
+        
+        table { width: 100%; border-collapse: collapse; background: white; color: black; margin-top: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; border: 1px solid #e0e0e0; text-align: center; }
+        th { background: #cfd8dc; font-size: 15px; }
+        .sub-panel { display: none; background: white; color: black; padding: 15px; border-radius: 15px; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .del-btn { background: #f44336; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; margin-top: 10px; cursor: pointer; transition: background 0.2s; }
+        .del-btn:hover { background: #d32f2f; }
+
+        @media (min-width: 768px) {
+            .treatment-grid { grid-template-columns: repeat(3, 1fr); }
+            body { padding: 20px; }
+            .tooth { width: 22px; height: 32px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h2>د. هدی علی مولود</h2></header>
+    <form id="pForm">
+        <div class="input-row">
+            <input type="text" id="name" placeholder="ناوی چارەخواز" required>
+            <div class="age-box" id="ageScroll"></div>
+            <input type="number" id="phone" placeholder="ژ. مۆبایل" required>
+        </div>
+        <div class="treatment-grid" id="workGrid"></div>
+        <div id="teeth-section" class="teeth-container">
+            <h4 id="workTitle" style="text-align:center; margin:0; font-size:16px; color:var(--main); margin-bottom:10px;"></h4>
+            <div id="teethLayout"></div>
+        </div>
+        
+        <button type="submit" class="btn save-btn">💾 تۆمارکردن</button>
+        <button type="button" class="btn report-btn" onclick="openReport()">📊 ڕاپۆرتەکان</button>
+        <input type="text" id="searchBox" oninput="doSearch()" placeholder="🔎 گەڕان بەپێی ناو یان مۆبایل..." style="width:100%; padding:14px; margin-top:15px; border-radius:12px; border:2px solid #e0e0e0; font-size:14px; transition:0.3s;">
+        <div id="searchRes"></div>
+    </form>
+</div>
+
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:15px;">
+            <h2 style="margin:0;">📊 ڕاپۆرتەکان</h2>
+            <button onclick="closeReport()" style="background:#f44336; color:white; border:none; padding:10px 20px; border-radius:10px; font-size:14px; cursor:pointer;">داخستن</button>
+        </div>
+
+        <div class="icon-grid">
+            <div class="icon-card" onclick="sendToTelegram()">📂<br><span>Backup</span></div>
+            <div class="icon-card" onclick="document.getElementById('restoreFile').click()">🔄<br><span>Restore</span></div>
+            <div class="icon-card" onclick="showPanel('dayPanel')">📅<br><span>ڕۆژانە</span></div>
+            <div class="icon-card" onclick="showPanel('weekPanel')">🗓️<br><span>هەفتانە</span></div>
+            <div class="icon-card" onclick="showPanel('monthPanel')">🌙<br><span>مانگانە</span></div>
+            <div class="icon-card" onclick="showPanel('yearPanel')">🌟<br><span>ساڵانە</span></div>
+        </div>
+
+        <input type="file" id="restoreFile" style="display:none" onchange="restoreData(event)">
+
+        <div id="dayPanel" class="sub-panel"><input type="date" id="calDate" onchange="loadDayStat()" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ccc; margin-bottom:15px;"><div id="dayRes"></div></div>
+        <div id="weekPanel" class="sub-panel"><div id="weekRes"></div></div>
+        <div id="monthPanel" class="sub-panel"><select id="mSel" onchange="loadMonthStat()" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ccc; margin-bottom:15px;"></select><div id="monthRes"></div></div>
+        <div id="yearPanel" class="sub-panel"><select id="ySel" onchange="loadYearStat()" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ccc; margin-bottom:15px;"></select><div id="yearRes"></div></div>
+    </div>
+</div>
+
+<script>
+    const DB_NAME = 'HudaDentalDB_2026';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'patients';
+    const TELEGRAM_TOKEN = '8309811464:AAFlm5y6r9CpfclT20BygRdQizwTugtYSyk';
+    const TELEGRAM_CHAT_ID = '1043807827';
+    
+    let db;
+    let dataByWork = {}; 
+    let currentWork = "";
+
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'ts' });
+        }
+    };
+    request.onsuccess = (e) => {
+        db = e.target.result;
+        init();
+    };
+
+    function init() {
+        const ageBox = document.getElementById('ageScroll');
+        ageBox.innerHTML = "";
+        for(let i=1; i<=99; i++) ageBox.innerHTML += `<div class="age-num">${i}</div>`;
+        setTimeout(() => ageBox.scrollTop = 24 * 45, 100);
+
+        const works = ["پشکنین", "شۆردن", "کیف", "پڕکردنەوە", "کێشان", "دەمار بڕین"];
+        const grid = document.getElementById('workGrid');
+        grid.innerHTML = "";
+        works.forEach(w => {
+            const div = document.createElement('div');
+            div.className = 'treat-item';
+            div.innerText = w;
+            div.onclick = () => {
+                currentWork = w;
+                document.querySelectorAll('.treat-item').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+                if(w==="پشکنین"||w==="شۆردن"){
+                    document.getElementById('teeth-section').style.display='none';
+                    dataByWork[w]=["General"];
+                    updateButtonStatus();
+                } else {
+                    if(!dataByWork[w]) dataByWork[w]=[];
+                    document.getElementById('workTitle').innerText = w;
+                    document.getElementById('teethLayout').innerHTML = drawTeeth('main', dataByWork[w]);
+                    document.getElementById('teeth-section').style.display='block';
+                }
+            };
+            grid.appendChild(div);
+        });
+
+        const mSel = document.getElementById('mSel');
+        for(let m=0; m<12; m++) mSel.innerHTML += `<option value="${m}">مانگی ${m+1}</option>`;
+        mSel.value = new Date().getMonth();
+
+        const ySel = document.getElementById('ySel');
+        for(let y=2026; y<=2050; y++) ySel.innerHTML += `<option value="${y}">ساڵی ${y}</option>`;
+        ySel.value = new Date().getFullYear();
+    }
+
+    function updateButtonStatus() {
+        document.querySelectorAll('.treat-item').forEach(btn => {
+            const w = btn.innerText;
+            if(dataByWork[w] && dataByWork[w].length > 0) btn.classList.add('has-data');
+            else btn.classList.remove('has-data');
+        });
+    }
+
+    function drawTeeth(mode, done=[]) {
+        const qs = { q1:[8,7,6,5,4,3,2,1], q2:[1,2,3,4,5,6,7,8], q4:[8,7,6,5,4,3,2,1], q3:[1,2,3,4,5,6,7,8] };
+        let h = `<div class="tooth-layout"><div class="tooth-row">`;
+        ['q1','q2'].forEach((q, i) => {
+            h += `<div class="quadrant ${q}">`;
+            qs[q].forEach(n => {
+                let id = q.toUpperCase()+':'+n;
+                h += `<div class="tooth ${done.includes(id)?'selected':''}" onclick="${mode==='main'?'tglTooth(this,\''+id+'\')':''}">${n}</div>`;
+            });
+            h += `</div>${i===0?'<div style="width:2px;background:#333;height:26px;margin:0 2px;"></div>':''}`;
+        });
+        h += `</div><div style="height:2px;background:#333;width:100%;margin:5px 0;"></div><div class="tooth-row">`;
+        ['q4','q3'].forEach((q, i) => {
+            h += `<div class="quadrant ${q}">`;
+            qs[q].forEach(n => {
+                let id = q.toUpperCase()+':'+n;
+                h += `<div class="tooth ${done.includes(id)?'selected':''}" onclick="${mode==='main'?'tglTooth(this,\''+id+'\')':''}">${n}</div>`;
+            });
+            h += `</div>${i===0?'<div style="width:2px;background:#333;height:26px;margin:0 2px;"></div>':''}`;
+        });
+        return h + `</div></div>`;
+    }
+
+    function tglTooth(el, id) {
+        if(!dataByWork[currentWork]) dataByWork[currentWork]=[];
+        if(dataByWork[currentWork].includes(id)) {
+            dataByWork[currentWork] = dataByWork[currentWork].filter(x=>x!==id);
+            el.classList.remove('selected');
+        } else {
+            dataByWork[currentWork].push(id);
+            el.classList.add('selected');
+        }
+        updateButtonStatus();
+    }
+
+    async function getAllData() {
+        return new Promise((resolve) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result);
+        });
+    }
+
+    document.getElementById('pForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const age = Math.round(document.getElementById('ageScroll').scrollTop / 45) + 1;
+        let works = [];
+        for(let k in dataByWork) if(dataByWork[k].length > 0) works.push({type:k, teeth:dataByWork[k]});
+        if(works.length === 0) return alert("تکایە جۆری ئیش هەڵبژێرە");
+
+        const now = new Date();
+        const entry = {
+            name: document.getElementById('name').value,
+            age,
+            phone: document.getElementById('phone').value,
+            date: now.toISOString().split('T')[0],
+            time: now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
+            works,
+            ts: Date.now()
+        };
+
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).add(entry);
+        tx.oncomplete = () => location.reload();
+    };
+
+    function renderPatient(p) {
+        let h = `<div class="res-card">
+            <div class="res-header"><span>👤 ${p.name}</span><span style="color:#d32f2f">📞 ${p.phone}</span></div>
+            <div class="res-sub"><span>🎂 تەمەن: ${p.age}</span><span>📅 ${p.date}</span><span>⏰ کات: ${p.time}</span></div>`;
+        p.works.forEach(w => {
+            h += `<div class="work-box"><span class="work-title">${w.type}</span>`;
+            h += (w.type!=="پشکنین"&&w.type!=="شۆردن") ? drawTeeth('view', w.teeth) : "<b>(گشتی)</b>";
+            h += `</div>`;
+        });
+        h += `<button class="del-btn" onclick="deleteEntry(${p.ts})">🗑️ سڕینەوە</button>`;
+        return h + `</div>`;
+    }
+
+    async function deleteEntry(ts) {
+        if(!confirm("دڵنیای لە سڕینەوە؟")) return;
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(ts);
+        tx.oncomplete = () => { alert("سڕایەوە"); location.reload(); };
+    }
+
+    async function doSearch() {
+        let q = document.getElementById('searchBox').value.toLowerCase();
+        let res = document.getElementById('searchRes'); res.innerHTML = "";
+        if(!q) return;
+        const list = await getAllData();
+        list.filter(p=>p.name.toLowerCase().includes(q)||p.phone.includes(q)).reverse().forEach(p=> res.innerHTML += renderPatient(p));
+    }
+
+    function showPanel(id) {
+        document.querySelectorAll('.sub-panel').forEach(p => p.style.display='none');
+        document.getElementById(id).style.display='block';
+        if(id==='weekPanel') loadWeekStat();
+        if(id==='monthPanel') loadMonthStat();
+        if(id==='yearPanel') loadYearStat();
+    }
+
+    async function loadDayStat() {
+        let d = document.getElementById('calDate').value;
+        const list = await getAllData();
+        document.getElementById('dayRes').innerHTML = list.filter(p=>p.date===d).map(p=>renderPatient(p)).join('') || "<p style='text-align:center;'>داتا نییە</p>";
+    }
+
+    function generateTable(list) {
+        let s = {};
+        list.forEach(p => p.works.forEach(w => {
+            s[w.type] = (s[w.type]||0) + ((w.type==="پشکنین"||w.type==="شۆردن")?1:w.teeth.length);
+        }));
+        let h = "<table><tr><th>جۆری ئیش</th><th>کۆی گشتی</th></tr>";
+        for(let k in s) h += `<tr><td>${k}</td><td>${s[k]} دانە</td></tr>`;
+        return (Object.keys(s).length > 0) ? h + "</table>" : "<p style='text-align:center;'>داتا نییە</p>";
+    }
+
+    async function loadWeekStat() { const list = await getAllData(); document.getElementById('weekRes').innerHTML = generateTable(list.filter(p => new Date(p.date) > new Date(Date.now() - 7*86400000))); }
+    async function loadMonthStat() { let m = document.getElementById('mSel').value; const list = await getAllData(); document.getElementById('monthRes').innerHTML = generateTable(list.filter(p => new Date(p.date).getMonth() == m)); }
+    async function loadYearStat() { let y = document.getElementById('ySel').value; const list = await getAllData(); document.getElementById('yearRes').innerHTML = generateTable(list.filter(p => new Date(p.date).getFullYear() == y)); }
+
+    async function sendToTelegram() {
+        const list = await getAllData();
+        if(list.length === 0) return alert("هیچ داتایەک نییە");
+        const blob = new Blob([JSON.stringify(list)], { type: 'application/json' });
+        const formData = new FormData();
+        formData.append('chat_id', TELEGRAM_CHAT_ID);
+        formData.append('document', blob, `Huda_Dental_Backup.json`);
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, { method: 'POST', body: formData });
+            if(res.ok) alert("✅ باکئەپ نێردرا");
+        } catch(e) { alert("کێشەی ئینتەرنێت هەیە"); }
+    }
+
+    function restoreData(event) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const list = JSON.parse(e.target.result);
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                list.forEach(item => store.put(item));
+                tx.oncomplete = () => { alert("✅ داتاکان گەڕانەوە"); location.reload(); };
+            } catch(err) { alert("فایلەکە هەڵەیە"); }
+        };
+        reader.readAsText(event.target.files[0]);
+    }
+
+    function openReport() { document.getElementById('reportModal').style.display='block'; }
+    function closeReport() { document.getElementById('reportModal').style.display='none'; }
+</script>
+</body>
+</html>
